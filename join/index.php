@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+require('dbconnect.php');
 if (!empty($_POST)) {
 
 	if ($_POST['name'] === '') {
@@ -24,12 +24,22 @@ if (!empty($_POST)) {
 		}
 	}
 
+	// アカウントの重複をチェック//
+	if(empty($error)) {
+		$member = $db->prepare('SELECT COUNT(*) AS cnt FROM members WHERE email=?');
+		$member->execute(array($_POST['email']));
+		$record = $member->fetch();
+		if ($record['cnt'] > 0) {
+			$error['email'] = 'duplicate';
+		}
+	}
+
 
 	// すべての項目に入力されていれば
 	if(empty($error)) {
 		$image = date('Ymdhis') . $_FILES['image']['name'];
 		move_uploaded_file($_FILES['image']['tmp_name'], '../member_picture/' . $image);
-		$_SESSION['join'] = $_POST;
+		$_SESSION['join'] = $_POST;          //入力情報をセッションに代入//
 		$_SESSION['join']['image'] = $image;
 		header('Location: check.php');
 		exit();
@@ -75,6 +85,9 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {    //URLパ�
 			<?php if($error['email'] === 'blank') :?>
 			<p class="error">*メールアドレスを入力してください</p>
 			<?php endif ; ?>
+			<?php if($error['email'] === 'duplicate') :?>
+			<p class="error">*指定されたメールアドレスはすでに登録されております</p>
+			<?php endif ; ?>
 		<dt>パスワード<span class="required">必須</span></dt>
 		<dd>
         	<input type="password" name="password" size="10" maxlength="20" value="<?php print(htmlspecialchars($_POST['password'])); ?>" />
@@ -94,6 +107,7 @@ if ($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])) {    //URLパ�
 			<?php endif ; ?>
 			<?php if (!empty($error)) :?>
 			<p class="error">* 恐れ入りますが、画像を改めて指定してください</p>
+			<?php endif ?>
         </dd>
 	</dl>
 	<div><input type="submit" value="入力内容を確認する" /></div>
