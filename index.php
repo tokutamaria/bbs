@@ -1,11 +1,13 @@
 <?php
 session_start();
 require('join/dbconnect.php');
+ini_set('display_errors', 1);
 
 if (isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) {
 $_SESSION['time'] = time();
 
-// ユーザー情報を取得//
+ $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
 $members = $db->prepare('SELECT * FROM members WHERE id=?');
 $members->execute(array($_SESSION['id']));
 $member = $members->fetch();
@@ -13,7 +15,20 @@ $member = $members->fetch();
   header('Location: login.php');
   exit();
 }
+
+
+if (!empty($_POST)) {
+  if($_POST['message'] !== '') {
+    $message = $db->prepare('INSERT INTO posts SET member_id=?,message=?,created=NOW()');
+    $message->execute(array(
+      $member['id'],
+      $_POST['message'],
+      // $_POST['reply_post_id']
+    ));
+  }
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="ja">
