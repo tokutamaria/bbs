@@ -1,12 +1,12 @@
 <?php
 session_start();
 require('join/dbconnect.php');
-ini_set('display_errors', 1);
+// ini_set('display_errors', 1);
 
 if (isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()) {
 $_SESSION['time'] = time();
 
- $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+//  $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);        $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
 $members = $db->prepare('SELECT * FROM members WHERE id=?');
 $members->execute(array($_SESSION['id']));
@@ -85,11 +85,19 @@ if (isset($_REQUEST['res'])) {
     <p><?php print(htmlspecialchars($post['message'], ENT_QUOTES));?>
     <span class="name">（<?php print(htmlspecialchars($post['name'], ENT_QUOTES));?>）
     </span>[<a href="index.php?res=<?php print(htmlspecialchars($post['id'], ENT_QUOTES)); ?>">Re</a>]</p>
-    <p class="day"><?php print(htmlspecialchars($post['created'], ENT_QUOTES));?><<a href="view.php?id="></a>
-<a href="view.php?id=">
+
+
+    <p class="day"><a href="view.php?id=<?php print (htmlspecialchars($post['id'])); ?>"><?php print(htmlspecialchars($post['created'], ENT_QUOTES));?></a>
+
+<?php if ($post['reply_message_id'] > 0): ?>
+<a href="view.php?id=<?php print(htmlspecialchars($post['reply_message_id'], ENT_QUOTES));?>">
 返信元のメッセージ</a>
-[<a href="delete.php?id="
+<?php endif ?>
+
+<?php if ($_SESSION['id'] ===$post['member_id']):?>
+[<a href="delete.php?id=<?php print(htmlspecialchars($post['id'])); ?>"
 style="color: #F33;">削除</a>]
+<?php endif; ?>
     </p>
     </div>
 <?php endforeach; ?>
